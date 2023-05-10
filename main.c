@@ -8,11 +8,21 @@
 #include <rmw_microros/rmw_microros.h>
 
 #include "pico/stdlib.h"
-#include "pico_uart_transports.h"
+#include "hardware/uart.h"
+#include "hardware/irq.h"
+#include "hardware/i2c.h"
+#include "hardware/spi.h"
+
+#include "Vacuumizer/pico_uart_transports.h"
+#include "Vacuumizer/Vacuumizer.h"
+#include "Vacuumizer/adxl345_driver.h"
+#include "Vacuumizer/adxl345_driver_interface.h"
 
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Aborting.\n",__LINE__,(int)temp_rc); return 1;}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Continuing.\n",__LINE__,(int)temp_rc);}}
 #define LED_PIN 25
+
+#define FIRMWARE_VERSION 0.1
 
 rcl_publisher_t publisher;
 rcl_subscription_t subscriber;
@@ -48,6 +58,39 @@ int main(int argc, const char * const * argv)
 
 	gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
+
+	uart_init(UART_ID, BAUD_RATE);
+
+	gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+	gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
+	uart_set_hw_flow(UART_ID, false, false);
+
+	uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
+
+	uart_print("firmware_version %d\n", FIRMWARE_VERSION);
+
+	uint8_t res, i;
+	float g[3];
+
+	res = adxl345_basic_init(ADXL345_INTERFACE_IIC, ADXL345_ADDRESS_ALT_0);
+
+	for (i = 0; i < 3; i++)
+	{
+		res = adxl345_basic_read((float *)g);
+
+		if (res != 0)
+		{			
+			return 1;
+		}
+		
+		adxl345_interface_debug_print("adxl345: x is %0.3f.\n", g[0]);
+		adxl345_interface_debug_print("adxl345: y is %0.3f.\n", g[1]);
+		adxl345_interface_debug_print("adxl345: z is %0.3f.\n", g[2]);
+		adxl345_interface_delay_ms(1000);	
+	}
+
+	return 0;
 
   	rcl_allocator_t allocator = rcl_get_default_allocator();
 	rclc_support_t support;

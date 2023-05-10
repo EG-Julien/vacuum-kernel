@@ -14,12 +14,20 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 link_directories(libmicroros)
+link_directories(Vacuumizer)
+
 add_executable(main
     main.c
-    pico_uart_transport.c
+    Vacuumizer/pico_uart_transport.c
+    Vacuumizer/Vacuumizer.c
+    Vacuumizer/adxl345_driver.c
+    Vacuumizer/adxl345_driver_interface.c
 )
+
 target_link_libraries(main
     pico_stdlib
+    hardware_spi
+    hardware_i2c
     microros
 )
 
