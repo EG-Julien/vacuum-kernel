@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
+# Comment out these lines if compiling directly on arm ... hello MBP Mx users :)
+
+set(CMAKE_C_COMPILER "/usr/bin/arm-none-eabi-gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/arm-none-eabi-g++")
+
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 project(main C CXX ASM)
