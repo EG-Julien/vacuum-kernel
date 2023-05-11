@@ -5,11 +5,12 @@ cmake_minimum_required(VERSION 3.12)
 set(CMAKE_C_COMPILER "/usr/bin/arm-none-eabi-gcc")
 set(CMAKE_CXX_COMPILER "/usr/bin/arm-none-eabi-g++")
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 project(main C CXX ASM)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
@@ -20,7 +21,6 @@ add_executable(main
     main.c
     Vacuumizer/pico_uart_transport.c
     Vacuumizer/Vacuumizer.c
-    Vacuumizer/adxl345_driver.c
     Vacuumizer/adxl345_driver_interface.c
 )
 
@@ -33,6 +33,9 @@ target_link_libraries(main
 
 target_include_directories(main PUBLIC
     libmicroros/include
+    Vacuumizer
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")

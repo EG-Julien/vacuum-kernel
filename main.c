@@ -15,7 +15,6 @@
 
 #include "Vacuumizer/pico_uart_transports.h"
 #include "Vacuumizer/Vacuumizer.h"
-#include "Vacuumizer/adxl345_driver.h"
 #include "Vacuumizer/adxl345_driver_interface.h"
 
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Aborting.\n",__LINE__,(int)temp_rc); return 1;}}
@@ -68,29 +67,26 @@ int main(int argc, const char * const * argv)
 
 	uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
 
-	uart_print("firmware_version %d\n", FIRMWARE_VERSION);
+	uart_print("firmware_version %0.2f\n", FIRMWARE_VERSION);
+	uart_print("peripherals initializing !");
+	
+	static int16_t accelerometer_data[3];
+	memset(accelerometer_data, 0, sizeof(accelerometer_data));
+	init_adxl345();
 
-	uint8_t res, i;
-	float g[3];
-
-	res = adxl345_basic_init(ADXL345_INTERFACE_IIC, ADXL345_ADDRESS_ALT_0);
-
-	for (i = 0; i < 3; i++)
-	{
-		res = adxl345_basic_read((float *)g);
-
-		if (res != 0)
-		{			
-			return 1;
-		}
-		
-		adxl345_interface_debug_print("adxl345: x is %0.3f.\n", g[0]);
-		adxl345_interface_debug_print("adxl345: y is %0.3f.\n", g[1]);
-		adxl345_interface_debug_print("adxl345: z is %0.3f.\n", g[2]);
-		adxl345_interface_delay_ms(1000);	
-	}
-
-	return 0;
+	uart_print("peripherals initialized !");
+    
+	while(1)
+    {
+        read_adxl345(accelerometer_data);
+        //3.9mg/LSB scale factor in 13-bit mode
+        uart_print("RAW: %d\t%d\t%d\n",accelerometer_data[0], accelerometer_data[1], accelerometer_data[2]);
+        uart_print("ACCEL: %f\t%f\t%f\n",
+                        ((float)accelerometer_data[0])*3.9/1000,
+                        ((float)accelerometer_data[1])*3.9/1000,
+                        ((float)accelerometer_data[2])*3.9/1000);
+        sleep_ms(10);
+    }
 
   	rcl_allocator_t allocator = rcl_get_default_allocator();
 	rclc_support_t support;
