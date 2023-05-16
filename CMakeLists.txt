@@ -21,7 +21,6 @@ add_executable(main
     main.c
     Vacuumizer/pico_uart_transport.c
     Vacuumizer/Vacuumizer.c
-    Vacuumizer/adxl345_driver_interface.c
 )
 
 target_link_libraries(main

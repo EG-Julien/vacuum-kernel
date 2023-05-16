@@ -11,7 +11,6 @@
 #define UART_RX_PIN 1
 
 #include <stdarg.h>
-#include "adxl345_driver_interface.h"
 #include <stdio.h>
 
 #include <rcl/rcl.h>
